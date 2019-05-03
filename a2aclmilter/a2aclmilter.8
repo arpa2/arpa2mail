@@ -1,0 +1,120 @@
+.\" Copyright (c) 2019 Tim Kuijsten
+.\"
+.\" Permission to use, copy, modify, and/or distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd $Mdocdate: April 29 2019 $
+.Dt A2ACLMILTER 8
+.Os
+.Sh NAME
+.Nm a2aclmilter
+.Nd an ARPA2 ACL milter
+.Sh SYNOPSIS
+.Nm
+.Op Fl dqv
+.Op Fl g Ar group
+.Ar acldb
+.Ar user
+.Ar chrootdir
+.Ar sockaddr
+.Sh DESCRIPTION
+The
+.Nm
+daemon tests whether a sender may communicate with a receiver given an ARPA2
+ACL policy.
+.Pp
+It's arguments are as follows.
+.Bl -tag -width Ds
+.It Fl d
+Do not daemonize but stay in foreground.
+.It Fl g Ar group
+Run as the specified group regardless of the primary group of
+.Ar user .
+.It Fl q
+Be more quiet.
+.It Fl v
+Be more verbose.
+.It Ar acldb
+Use the file
+.Ar acldb
+as the policy database to determine on which list a sender and receiver are
+listed.
+See
+.Xr a2acl.conf 5
+for a description of the file format of this database.
+.It Ar user
+The user name or id as which to run the milter process.
+The primary group of this user will be used if not overridden with the
+.Fl g
+option.
+.It Ar chrootdir
+The directory in which to chroot the milter process.
+Note that for a safe chroot
+all components of the path must be owned by
+.Em root
+and should not be writable by the group or others.
+Ideally the chroot dir should be empty or, when using a Unix domain socket,
+should only contain one subdirectory that is owned by
+.Ar user
+so that
+.Ar sockaddr
+can be created on startup.
+.It Ar sockaddr
+A TCP socket address or Unix domain socket in one of the following forms:
+.El
+.Bl -tag -width Ds -offset indent-two
+.It Pa dir/sock
+A path to a Unix domain socket.
+The path is considered relative to the
+.Ar chrootdir .
+.Pa dir
+must exist and owned by
+.Ar user
+so that
+.Pa sock
+can be created or recreated by
+.Nm .
+.It inet:port@addr
+Sendmail milter style internet v4 address.
+For example:
+.Dl inet:7000@127.0.0.1
+.It inet6:port@addr
+Sendmail milter style internet v6 address.
+For example:
+.Dl inet6:7000@fd::1
+.El
+.Sh EXIT STATUS
+The
+.Nm
+daemon exits 0 after receiving a TERM signal, or 1 if an error occured.
+.Sh EXAMPLES
+In order to let a mailserver like Postfix query the milter for every incoming
+mail about whether or not communication is allowed, start the milter with the
+desired policy file, and configure Postfix to use the milter. In this example
+the policy file
+.Pa /etc/a2aclpolicy
+is used. The milter is instructed to drop privileges to the unprivileged user id
+2498 and chroot to
+.Pa /etc/opt .
+Let it listen on localhost port 7000 for incoming connections:
+.Bd -literal -offset 4n
+a2aclmilter /etc/a2aclpolicy 2498 /etc/opt inet:7000@127.0.0.1
+.Ed
+.Pp
+In order to let Postfix communicate with the milter add the following line to
+.Pa /etc/postfix/main.cf :
+.Dl smtpd_milters = inet:127.0.0.1:7000
+.Sh SEE ALSO
+.Xr a2acl.conf 5
+.Sh AUTHORS
+.An -nosplit
+.An Tim Kuijsten
