@@ -42,19 +42,14 @@ For a more complete and interactive example see the [Docker demo].
 
 ## Installation
 
-First install liba2acl:
-```sh
-$ git clone https://github.com/arpa2/libarpa2service.git
-$ cd libarpa2service/build
-$ cmake ..
-$ make
-$ sudo make install
-$ sudo ldconfig
-```
+First install liba2acl from the libarpa2service repository:
+https://github.com/arpa2/libarpa2service
 
 Then install a2aclmilter:
 ```sh
-$ cd ../a2aclmilter/build
+$ git clone https://github.com/arpa2/arpa2mail.git
+$ mkdir arpa2mail/a2aclmilter/build
+$ cd arpa2mail/a2aclmilter/build
 $ cmake ..
 $ make
 $ sudo make install
