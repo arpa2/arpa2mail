@@ -50,8 +50,7 @@ endif()
 
 add_executable(a2aclmilter a2aclmilter.c util.c)
 
-#link_directories(a2aclmilter PRIVATE /usr/local/include)
-target_include_directories(a2aclmilter PRIVATE include)
+target_include_directories(a2aclmilter PRIVATE /usr/local/include)
 target_link_libraries(a2aclmilter "${A2ID_LIBRARY}" "${A2ACL_LIBRARY}" "${MILTER_LIBRARY}")
 
 # starting from CMake 3.14, drop DESTINATION and use platform defaults
