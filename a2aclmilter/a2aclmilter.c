@@ -33,7 +33,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 
 	if (mailaddr == NULL) {
 		logwarnx("sender unknown");
-		return SMFIS_DISCARD;
+		return SMFIS_REJECT;
 	}
 
 	if (rcptaddr == NULL) {
@@ -48,7 +48,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 
 	if (a2id_parsestr(&localid, rcptaddr, 0) != 0) {
 		lognoticex("illegal receiver %s", rcptaddr);
-		return SMFIS_DISCARD;
+		return SMFIS_REJECT;
 	}
 
 	if (a2acl_whichlist(&list, &remoteid, &localid) == -1) {
@@ -62,17 +62,13 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 	switch (list) {
 	case 'W':
 		return SMFIS_CONTINUE;
-
 	case 'G':
-		return SMFIS_TEMPFAIL;
-
+		return SMFIS_CONTINUE;
 	case 'B':
 		return SMFIS_REJECT;
-
 	case 'A':
 		/* XXX how to signal abandon versus blacklist? smfi_quarantine? */
 		return SMFIS_REJECT;
-
 	default:
 		logexitx(1, "unexpected ACL");
 	}
@@ -83,7 +79,7 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 static void
 printusage(FILE *stream)
 {
-	fprintf(stream, "usage: %s [-dhqv] [-g group] acldb user chrootdir "
+	fprintf(stream, "usage: %s [-dqv] [-g group] acldb user chrootdir "
 	    "sockaddr\n", progname);
 }
 
@@ -114,23 +110,18 @@ main(int argc, char **argv)
 		case 'd':
 			foreground = 1;
 			break;
-
 		case 'g':
 			groupstr = optarg;
 			break;
-
 		case 'h':
 			printusage(stdout);
 			exit(0);
-
                 case 'q':
                         verbose--;
                         break;
-
                 case 'v':
                         verbose++;
                         break;
-
 		default:
 			printusage(stderr);
 			exit(1);

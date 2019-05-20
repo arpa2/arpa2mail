@@ -8,8 +8,9 @@ BINDIR	= $(PREFIX)/bin
 MANDIR	= $(PREFIX)/man
 
 a2aclmilter: util.o a2aclmilter.c
-	${CC} ${CFLAGS} -L/usr/local/lib -I/usr/local/include util.o \
-	a2aclmilter.c -la2acl -lmilter -pthread -o $@
+	${CC} ${CFLAGS} -Wno-unused-parameter -L/usr/local/lib \
+	    -I/usr/local/include util.o a2aclmilter.c -la2id -la2acl -lmilter \
+	    -pthread -o $@
 
 util.o: util.c util.h
 	${CC} ${CFLAGS} -c util.c
