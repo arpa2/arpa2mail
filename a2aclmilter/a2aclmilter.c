@@ -14,16 +14,34 @@
 
 #include "util.h"
 
+#define HEADER "X-ARPA2-ACL"
+
 int background, verbose;
 
 static const char *progname;
+
+sfsistat
+mlfi_envfrom(SMFICTX *ctx, char **argv)
+{
+	char list, *lp;
+
+	if ((lp = malloc(sizeof(list))) == NULL)
+		logexit(1, "malloc");
+
+	if (smfi_setpriv(ctx, lp) == MI_FAILURE)
+		logexitx(1, "%s smfi_setpriv", __func__);
+
+	loginfox("%s list resource allocated", __func__);
+
+	return SMFIS_CONTINUE;
+}
 
 sfsistat
 mlfi_envrcpt(SMFICTX *ctx, char **argv)
 {
 	struct a2id remoteid, localid;
 	char *mailaddr, *rcptaddr;
-	char list;
+	char list, *lp;
 
 	/* prevent compiler warning */
 	argv = NULL;
@@ -59,6 +77,14 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 
 	lognoticex("%s => %s: %c", mailaddr, rcptaddr, list);
 
+	/* update list of this message transaction */
+	if ((lp = smfi_getpriv(ctx)) == NULL)
+		logexitx(1, "%s: smfi_getpriv == NULL", __func__);
+
+	*lp = list;
+	if (smfi_setpriv(ctx, lp) == MI_FAILURE)
+		logexitx(1, "%s smfi_setpriv", __func__);
+
 	switch (list) {
 	case 'W':
 		return SMFIS_CONTINUE;
@@ -72,7 +98,73 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 	default:
 		logexitx(1, "unexpected ACL");
 	}
+}
 
+sfsistat
+mlfi_header(SMFICTX *ctx, char *headerf, char *headerv)
+{
+	if (strcasestr(headerf, HEADER) != NULL) {
+		logwarnx("unexpected " HEADER " header encountered");
+		return SMFIS_REJECT;
+	}
+
+	loginfox("header: %s: %s", headerf, headerv);
+
+	/* continue processing */
+	return SMFIS_CONTINUE;
+}
+
+sfsistat
+mlfi_eom(SMFICTX *ctx)
+{
+	char *lp, *val;
+
+	if ((lp = smfi_getpriv(ctx)) == NULL)
+		logexitx(1, "%s: smfi_getpriv == NULL", __func__);
+
+	val = NULL;
+
+	switch (*lp) {
+	case 'W':
+		val = "Whitelisted";
+		break;
+	case 'G':
+		val = "Greylisted";
+		break;
+	default:
+		logexitx(1, "unexpected list %d %c", *lp, *lp);
+	}
+
+	if (smfi_addheader(ctx, HEADER, val) == MI_FAILURE)
+		logexitx(1, "%s smfi_addheader", __func__);
+
+	free(lp);
+	lp = NULL;
+	if (smfi_setpriv(ctx, NULL) == MI_FAILURE)
+		logexitx(1, "%s smfi_setpriv", __func__);
+
+	loginfox("%s header added, list resource freed", __func__);
+
+	/* continue processing */
+	return SMFIS_CONTINUE;
+}
+
+sfsistat
+mlfi_abort(SMFICTX *ctx)
+{
+	char *lp;
+
+	if ((lp = smfi_getpriv(ctx)) == NULL)
+		return SMFIS_CONTINUE;
+
+	free(lp);
+	lp = NULL;
+	if (smfi_setpriv(ctx, NULL) == MI_FAILURE)
+		logexitx(1, "%s smfi_setpriv", __func__);
+
+	loginfox("%s list resource freed", __func__);
+
+	/* ignored but we have to return something */
 	return SMFIS_CONTINUE;
 }
 
@@ -261,7 +353,12 @@ main(int argc, char **argv)
 	memset(&smfilter, 0, sizeof(smfilter));
 	smfilter.xxfi_name = "A2ACL";
 	smfilter.xxfi_version = SMFI_VERSION;
+	smfilter.xxfi_flags = SMFIF_ADDHDRS;
+	smfilter.xxfi_envfrom = mlfi_envfrom;
 	smfilter.xxfi_envrcpt = mlfi_envrcpt;
+	smfilter.xxfi_header = mlfi_header;
+	smfilter.xxfi_eom = mlfi_eom;
+	smfilter.xxfi_abort = mlfi_abort;
 
 	if (smfi_register(smfilter) == MI_FAILURE)
 		logexitx(1, "smfi_register failed");
