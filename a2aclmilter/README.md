@@ -88,4 +88,4 @@ THIS SOFTWARE.
 [a2acl(1)]: https://netsend.nl/arpa2/a2acl.1.html
 [a2acl.conf(5)]: https://netsend.nl/arpa2/a2acl.conf.5.html
 [a2aclmilter(8)]: https://netsend.nl/arpa2/a2aclmilter.8.html
-[Docker demo]: https://github.com/timkuijsten/docker-demo/tree/master/demo-milter
+[Docker demo]: https://github.com/arpa2/docker-demo/tree/master/demo-a2aclmilter
