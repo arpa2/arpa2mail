@@ -12,7 +12,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: April 29 2019 $
+.Dd $Mdocdate: May 22 2019 $
 .Dt A2ACLMILTER 8
 .Os
 .Sh NAME
@@ -29,8 +29,15 @@
 .Sh DESCRIPTION
 The
 .Nm
-daemon tests whether a sender may communicate with a receiver given an ARPA2
-ACL policy.
+daemon tests whether a sender may communicate with a receiver given an ARPA2 ACL
+policy.
+In case a communication pair is whitelisted or greylisted, an
+.Dq X-ARPA2-ACL
+header is appended to the message to indicate to which list the pair is
+assigned.
+In case a communication pair is blacklisted or abandoned, the return value of
+the milter will indicate to the MTA that the message should be rejected or
+discarded, respectively.
 .Pp
 It's arguments are as follows.
 .Bl -tag -width Ds
@@ -97,13 +104,14 @@ The
 .Nm
 daemon exits 0 after receiving a TERM signal, or 1 if an error occured.
 .Sh EXAMPLES
-In order to let a mailserver like Postfix query the milter for every incoming
-mail about whether or not communication is allowed, start the milter with the
-desired policy file, and configure Postfix to use the milter. In this example
-the policy file
+In order to let an MTA like Postfix query the milter for every incoming mail
+about whether or not communication is allowed, start the milter with the desired
+policy file, and configure Postfix to use the milter.
+In this example the policy file
 .Pa /etc/a2aclpolicy
-is used. The milter is instructed to drop privileges to the unprivileged user id
-2498 and chroot to
+is used.
+The milter is instructed to drop privileges to the unprivileged user id 2498 and
+chroot to
 .Pa /etc/opt .
 Let it listen on localhost port 7000 for incoming connections:
 .Bd -literal -offset 4n
