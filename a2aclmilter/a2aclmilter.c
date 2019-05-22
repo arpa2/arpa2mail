@@ -93,11 +93,13 @@ mlfi_envrcpt(SMFICTX *ctx, char **argv)
 	case 'B':
 		return SMFIS_REJECT;
 	case 'A':
-		/* XXX how to signal abandon versus blacklist? smfi_quarantine? */
-		return SMFIS_REJECT;
+		return SMFIS_DISCARD;
 	default:
 		logexitx(1, "unexpected ACL");
 	}
+
+	/* noop to prevent compiler warning */
+	return SMFIS_REJECT;
 }
 
 sfsistat
