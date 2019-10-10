@@ -10,7 +10,7 @@ Status: **beta**
 Build requirements:
 * A C89 compiler
 * CMake >= 3.3
-* liba2acl
+* liba2acl v0.5.0
 * libmilter >= 8.16
 
 Run-time requirements:
@@ -42,8 +42,8 @@ For a more complete and interactive example see the [Docker demo].
 
 ## Installation
 
-First install liba2acl from the libarpa2service repository:
-https://github.com/arpa2/libarpa2service
+First install liba2acl v0.5.0 from the libarpa2service repository:
+https://github.com/arpa2/libarpa2service/tree/v0.5.0
 
 Then install a2aclmilter:
 ```sh
