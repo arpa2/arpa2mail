@@ -1,5 +1,7 @@
 # ARPA2 Mail repository
 
+*As of 2019-10-23 development has moved to https://gitlab.com/arpa2/arpa2mail*
+
 This repository contains modules related to e-mail.
 
 ## Modules
